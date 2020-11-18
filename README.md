@@ -1,2 +1,2 @@
 # bugzilla-to-webcompat
-An addon to move bugzilla issues to webcompat.com
+This extension adds a button to bugzilla ui allowing to move a given bugzilla issue to webcompat.com

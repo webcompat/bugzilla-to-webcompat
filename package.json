@@ -1,0 +1,25 @@
+{
+  "name": "bugzilla-to-webcompat",
+  "version": "1.0.0",
+  "description": "Adding a button to bugzilla ui allowing to move a bug to webcompat.com",
+  "main": "moveToWebcompat.js",
+  "scripts": {
+    "start": "npx web-ext run",
+    "lint:addon": "npx web-ext lint",
+    "prettier": "npx prettier --write '{*.css,*.js}'",
+    "lint:js": "npx eslint .",
+    "lint:js:fix": "npx eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webcompat/bugzilla-to-webcompat.git"
+  },
+  "author": "ksy36",
+  "license": "MPL",
+  "homepage": "https://github.com/webcompat/bugzilla-to-webcompat#readme",
+  "devDependencies": {
+    "eslint": "^7.13.0",
+    "prettier": "^1.19.1",
+    "web-ext": "^5.3.0"
+  }
+}
