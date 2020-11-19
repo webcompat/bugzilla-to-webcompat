@@ -1,0 +1,28 @@
+{
+  "description": "Adding a button to bugzilla ui allowing to move a bug to webcompat.com",
+  "manifest_version": 2,
+  "name": "bugzilla-to-webcompat",
+  "version": "1.0",
+  "homepage_url": "https://github.com/webcompat/bugzilla-to-webcompat",
+  "icons": {},
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "https://bugzilla.mozilla.org/show_bug.cgi?id=*",
+    "https://bugzilla.allizom.org/show_bug.cgi?id=*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://bugzilla.mozilla.org/show_bug.cgi?id=*",
+        "https://bugzilla.allizom.org/show_bug.cgi?id=*"
+      ],
+      "js": [
+        "moveToWebcompat.js"
+      ],
+      "css": [
+        "moveToWebcompat.css"
+      ]
+    }
+  ]
+}
