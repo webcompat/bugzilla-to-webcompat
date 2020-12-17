@@ -1,11 +1,14 @@
+"use strict";
+
+const WEBCOMPAT_ENDPOINT = "https://webcompat.com/issues/new";
+const BUGZILLA_ORIGIN = window.location.origin;
+const FALLBACK_MESSAGE = `More information is available on ${window.location}`;
+
 const REQUIRED = {
   op_sys: "OS (Categories > Platform > OS)",
-  platform: "Platform (Categories > Platform)",
   url: "URL (References > URL)",
   version: "Browser version (Categories > Version)"
 };
-
-const BUGZILLA_ORIGIN = window.location.origin;
 
 const getBugId = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -35,7 +38,7 @@ const openDropDown = (text, elms) => {
 
 const getBugData = bugId => {
   return fetch(
-    `${BUGZILLA_ORIGIN}/rest/bug/${bugId}?include_fields=url,platform,op_sys,version`
+    `${BUGZILLA_ORIGIN}/rest/bug/${bugId}?include_fields=url,op_sys,version,comments`
   )
     .then(response => response.json())
     .then(data => data)
@@ -59,6 +62,38 @@ const getRequired = bugData => {
   return required;
 };
 
+const convertToFormData = object => {
+  return Object.keys(object).reduce((formData, key) => {
+    formData.append(key, object[key]);
+    return formData;
+  }, new FormData());
+};
+
+const sendToWebcompat = async bug => {
+  const browser = await utils.getBrowser(bug.version, bug.op_sys);
+  const os = utils.getOS(bug.op_sys);
+  const steps = utils.getSteps(bug.comments, FALLBACK_MESSAGE);
+
+  const data = {
+    url: bug.url,
+    src: "bugzilla",
+    submit_type: "github-proxy-report",
+    problem_category: "unknown_bug",
+    browser,
+    os,
+    username: "",
+    description: "Moved from bugzilla",
+    steps_reproduce: steps
+  };
+
+  const form = convertToFormData(data);
+
+  return await fetch(WEBCOMPAT_ENDPOINT, {
+    method: "POST",
+    body: form
+  });
+};
+
 const onMoveButtonClick = async () => {
   const bugId = getBugId();
   if (!bugId)
@@ -72,7 +107,10 @@ const onMoveButtonClick = async () => {
     const required = getRequired(result.bugs[0]);
     if (required.length) {
       openDropDown("Please fill in the following:", required);
+      return;
     }
+
+    const response = await sendToWebcompat(result.bugs[0]);
   }
 };
 

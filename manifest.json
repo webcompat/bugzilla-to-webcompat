@@ -9,7 +9,10 @@
     "tabs",
     "activeTab",
     "https://bugzilla.mozilla.org/show_bug.cgi?id=*",
-    "https://bugzilla.allizom.org/show_bug.cgi?id=*"
+    "https://bugzilla.allizom.org/show_bug.cgi?id=*",
+    "https://staging.webcompat.com/*",
+    "https://webcompat.com/*",
+    "https://product-details.mozilla.org/*"
   ],
   "content_scripts": [
     {
@@ -18,6 +21,8 @@
         "https://bugzilla.allizom.org/show_bug.cgi?id=*"
       ],
       "js": [
+        "module_shim.js",
+        "utils.js",
         "moveToWebcompat.js"
       ],
       "css": [
