@@ -3,12 +3,15 @@
 const WEBCOMPAT_ENDPOINT = "https://webcompat.com/issues/new";
 const BUGZILLA_ORIGIN = window.location.origin;
 const FALLBACK_MESSAGE = `More information is available on ${window.location}`;
+const BUTTON_TEXT = "Move to webcompat.com";
 
 const REQUIRED = {
   op_sys: "OS (Categories > Platform > OS)",
   url: "URL (References > URL)",
   version: "Browser version (Categories > Version)"
 };
+
+let moveButton;
 
 const getBugId = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -38,7 +41,7 @@ const openDropDown = (text, elms) => {
 
 const getBugData = bugId => {
   return fetch(
-    `${BUGZILLA_ORIGIN}/rest/bug/${bugId}?include_fields=url,op_sys,version,comments`
+    `${BUGZILLA_ORIGIN}/rest/bug/${bugId}?include_fields=url,op_sys,version,comments,status`
   )
     .then(response => response.json())
     .then(data => data)
@@ -69,8 +72,30 @@ const convertToFormData = object => {
   }, new FormData());
 };
 
+const disableMoveButton = () => {
+  moveButton.innerText = "Moving to webcompat.com...";
+  moveButton.disabled = true;
+};
+
+const enableMoveButton = () => {
+  moveButton.innerText = BUTTON_TEXT;
+  moveButton.disabled = false;
+};
+
+const showError = errorText => {
+  enableMoveButton();
+  return openDropDown(errorText);
+};
+
 const sendToWebcompat = async bug => {
-  const browser = await utils.getBrowser(bug.version, bug.op_sys);
+  const browser = await utils
+    .getBrowser(bug.version, bug.op_sys)
+    .catch(err => new Error(err));
+
+  if (browser instanceof Error) {
+    return showError("Something went wrong while retrieving browser version.");
+  }
+
   const os = utils.getOS(bug.op_sys);
   const steps = utils.getSteps(bug.comments, FALLBACK_MESSAGE);
 
@@ -86,42 +111,88 @@ const sendToWebcompat = async bug => {
     steps_reproduce: steps
   };
 
-  const form = convertToFormData(data);
-
   return await fetch(WEBCOMPAT_ENDPOINT, {
     method: "POST",
-    body: form
+    body: convertToFormData(data)
   });
 };
 
 const onMoveButtonClick = async () => {
   const bugId = getBugId();
-  if (!bugId)
-    openDropDown(
+  if (!bugId) {
+    return showError(
       "A valid bug ID could not be found. Please check you're actually viewing a bug."
     );
+  }
 
-  const result = await getBugData(bugId);
+  disableMoveButton();
+
+  const result = await getBugData(bugId).catch(err => new Error(err));
+
+  if (result instanceof Error) {
+    return showError(
+      "There is an error with retrieving bug data from bugzilla."
+    );
+  }
 
   if (result.bugs && result.bugs.length) {
-    const required = getRequired(result.bugs[0]);
-    if (required.length) {
-      openDropDown("Please fill in the following:", required);
-      return;
+    const bug = result.bugs[0];
+
+    if (bug.status === "RESOLVED") {
+      return showError(
+        "The bug has already been resolved. Please reopen it and try again."
+      );
     }
 
-    const response = await sendToWebcompat(result.bugs[0]);
+    const required = getRequired(bug);
+    if (required.length) {
+      enableMoveButton();
+      return openDropDown("Please fill in the following:", required);
+    }
+
+    const response = await sendToWebcompat(bug).catch(err => new Error(err));
+
+    if (response instanceof Error) {
+      return showError(
+        "There is an error with importing the bug to webcompat.com. Please try to create it manually."
+      );
+    }
+
+    if (response.url) {
+      enableMoveButton();
+      resolveAsMoved(response.url);
+    }
   }
 };
 
-const buildButton = () => {
-  const moveButton = document.createElement("button");
-  moveButton.classList.add("secondary");
-  moveButton.type = "button";
-  moveButton.title = "Import bug to webcompat.com and resolve issue as Moved";
-  moveButton.innerText = "Move to webcompat.com";
+const fillSeeAlso = issueLink => {
+  document.getElementById("mode-btn").click();
+  document.getElementById("see_also-btn").click();
+  document.getElementById("see_also").value = issueLink;
+};
 
-  return moveButton;
+const resolveAsMoved = issueLink => {
+  fillSeeAlso(issueLink);
+
+  [...document.getElementById("resolve-as").children]
+    .filter(el => el.textContent.includes("FIXED"))[0]
+    .click();
+
+  const resolution = document.getElementById("bottom-resolution");
+  resolution.value = "MOVED";
+  resolution.dispatchEvent(new Event("change"));
+  document.getElementById("bottom-save-btn").click();
+};
+
+const buildButton = () => {
+  const mb = document.createElement("button");
+  mb.classList.add("secondary");
+  mb.type = "button";
+  mb.title = "Import bug to webcompat.com and resolve issue as Moved";
+  mb.innerText = BUTTON_TEXT;
+  mb.id = "move-to-webcompat";
+
+  return mb;
 };
 
 const buildDropDown = () => {
@@ -142,7 +213,7 @@ const buildWrapper = () => {
 
 const addMoveButtonUI = () => {
   const parentContainer = document.querySelector("#page-toolbar .buttons");
-  const moveButton = buildButton();
+  moveButton = buildButton();
   const dropDown = buildDropDown();
   const wrapper = buildWrapper();
 
