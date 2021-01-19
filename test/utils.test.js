@@ -73,6 +73,8 @@ describe("Utils", () => {
     expect(utils.getSteps(undefined, "fallback")).toBe("fallback");
     expect(utils.getSteps([], "fallback")).toBe("fallback");
     expect(utils.getSteps([{ text: "" }], "fallback")).toBe("fallback");
-    expect(utils.getSteps([{ text: "test" }], "fallback")).toBe("test");
+    expect(utils.getSteps([{ text: "test" }], "fallback")).toBe(
+      "test \n fallback"
+    );
   });
 });
