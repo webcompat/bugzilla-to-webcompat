@@ -1,8 +1,10 @@
 "use strict";
 
+/* globals utils */
+
 const WEBCOMPAT_ENDPOINT = "https://webcompat.com/issues/new";
 const BUGZILLA_ORIGIN = window.location.origin;
-const FALLBACK_MESSAGE = `More information is available on ${window.location}`;
+const BUGZILLA_HINT_MESSAGE = `**This report has been moved from bugzilla:** ${window.location}`;
 const BUTTON_TEXT = "Move to webcompat.com";
 
 const REQUIRED = {
@@ -41,7 +43,7 @@ const openDropDown = (text, elms) => {
 
 const getBugData = bugId => {
   return fetch(
-    `${BUGZILLA_ORIGIN}/rest/bug/${bugId}?include_fields=url,op_sys,version,comments,status`
+    `${BUGZILLA_ORIGIN}/rest/bug/${bugId}?include_fields=url,op_sys,version,comments,status,summary`
   )
     .then(response => response.json())
     .then(data => data)
@@ -97,7 +99,7 @@ const sendToWebcompat = async bug => {
   }
 
   const os = utils.getOS(bug.op_sys);
-  const steps = utils.getSteps(bug.comments, FALLBACK_MESSAGE);
+  const steps = utils.getSteps(bug.comments, BUGZILLA_HINT_MESSAGE);
 
   const data = {
     url: bug.url,
@@ -107,7 +109,7 @@ const sendToWebcompat = async bug => {
     browser,
     os,
     username: "",
-    description: "Moved from bugzilla",
+    description: bug.summary,
     steps_reproduce: steps
   };
 

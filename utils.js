@@ -94,12 +94,12 @@ async function getBrowser(version = "", os = "") {
   return getNightlyVersion(platform, os);
 }
 
-function getSteps(comments = [], fallbackMessage) {
+function getSteps(comments = [], hint) {
   if (comments.length && comments[0].text) {
-    return comments[0].text;
+    return `${comments[0].text} \n ${hint}`;
   }
 
-  return fallbackMessage;
+  return hint;
 }
 
 const utils = {

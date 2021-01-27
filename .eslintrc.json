@@ -9,5 +9,15 @@
   },
   "extends": [
     "eslint:recommended"
-  ]
+  ],
+  "ignorePatterns": ["module_shim.js"],
+  "globals": {
+    "module": true,
+    "require": true,
+    "jest": true,
+    "describe": true,
+    "expect": true,
+    "it": true,
+    "global": true
+  }
 }
