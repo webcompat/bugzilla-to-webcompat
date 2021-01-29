@@ -2,7 +2,7 @@
   "description": "Adding a button to bugzilla ui allowing to move a bug to webcompat.com",
   "manifest_version": 2,
   "name": "bugzilla-to-webcompat",
-  "version": "1.0",
+  "version": "1.1",
   "homepage_url": "https://github.com/webcompat/bugzilla-to-webcompat",
   "icons": {},
   "permissions": [
