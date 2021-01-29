@@ -1,6 +1,6 @@
 {
   "name": "bugzilla-to-webcompat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Adding a button to bugzilla ui allowing to move a bug to webcompat.com",
   "main": "moveToWebcompat.js",
   "scripts": {
